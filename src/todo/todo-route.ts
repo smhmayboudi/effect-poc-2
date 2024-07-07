@@ -12,7 +12,7 @@ export const TodoRoute = Effect.all([
   // - If the todo exists, return the todo as JSON
   // - If the todo does not exist return a 404 status code with the message `"Todo ${id} not found"`
   get('/todo/:id', (req, res) => {
-    const id = req.params.id;
+    const id: number = req.params.id;
     return pipe(
       TodoRepository,
       Effect.flatMap(repo => repo.getTodo(TodoId(id))),
@@ -62,7 +62,7 @@ export const TodoRoute = Effect.all([
   // - If the request JSON body is not valid return a 400 status code with the message `"Invalid todo"`
   // - If the todo does not exist return a 404 with the message `"Todo ${id} not found"`
   put('/todo/:id', (req, res) => {
-    const id = req.params.id;
+    const id: number = req.params.id;
     const decodeBody = Schema.decodeUnknown(TodoUpdateParams);
     return pipe(
       TodoRepository,
@@ -91,7 +91,7 @@ export const TodoRoute = Effect.all([
   // DELETE `/todo/:id` route
   // - Should delete the todo by id and return a boolean indicating if a todo was deleted
   del('/todo/:id', (req, res) => {
-    const id = req.params.id;
+    const id: number = req.params.id;
     return pipe(
       TodoRepository,
       Effect.flatMap(repo => repo.deleteTodo(TodoId(id))),

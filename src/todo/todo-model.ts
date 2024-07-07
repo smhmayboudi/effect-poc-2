@@ -13,8 +13,17 @@ export type TodoId = Brand.Brand.FromConstructor<typeof TodoId>;
  */
 export class Todo extends Schema.Class<Todo>('TodoModel')({
   id: pipe(Schema.Number, Schema.fromBrand(TodoId)),
-  title: Schema.String,
-  completed: Schema.Boolean,
+  title: pipe(
+    Schema.String,
+    Schema.pattern(/^\w+$/gi, {
+      message: () => 'must be 3 or more characters long.',
+    }),
+    Schema.minLength(3, {message: () => 'must be 3 or more characters long.'}),
+    Schema.filter(s => s[0] !== s[1], {
+      message: () => 'the first two characters should not be same.',
+    })
+  ),
+  completed: pipe(Schema.Boolean, Schema.optional({default: () => false})),
 }) {}
 
 /**
