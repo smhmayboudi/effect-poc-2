@@ -1,11 +1,13 @@
 import {Effect, Layer, pipe} from 'effect';
-import * as Exp from './express';
+import {Express} from './express';
 import {TodoRoute} from './todo/todo-route';
 import {TodoRepository} from './todo/todo-repository';
+import {TodoService} from './todo/todo-service';
 
 const AppLive = pipe(
-  Exp.Live('127.0.0.1', 8888),
-  Layer.merge(TodoRepository.Live)
+  Express.Live('127.0.0.1', 8888),
+  Layer.merge(TodoService.Live),
+  Layer.provideMerge(TodoRepository.Live)
 );
 
 pipe(

@@ -1,5 +1,5 @@
 import {Effect, Option, pipe} from 'effect';
-import {TodoRepository} from './todo-repository';
+import {TodoService} from './todo-service';
 import * as bodyParser from 'body-parser';
 import {Schema} from '@effect/schema';
 import {del, get, post, put, use} from '../express';
@@ -14,8 +14,8 @@ export const TodoRoute = Effect.all([
   get('/todo/:id', (req, res) => {
     const id: number = req.params.id;
     return pipe(
-      TodoRepository,
-      Effect.flatMap(repo => repo.getTodo(TodoId(id))),
+      TodoService,
+      Effect.flatMap(service => service.getTodo(TodoId(id))),
       Effect.flatMap(
         Option.match({
           onNone: () =>
@@ -26,11 +26,11 @@ export const TodoRoute = Effect.all([
     );
   }),
   // GET `/todo` route
-  // - Should return all todos from the `TodoRepository`
+  // - Should return all todos from the `TodoService`
   get('/todo', (_, res) =>
     pipe(
-      TodoRepository,
-      Effect.flatMap(repo => repo.getTodos()),
+      TodoService,
+      Effect.flatMap(service => service.getTodos()),
       Effect.flatMap(todos => Effect.sync(() => res.json(todos)))
     )
   ),
@@ -40,8 +40,8 @@ export const TodoRoute = Effect.all([
   post('/todo', (req, res) => {
     const decodeBody = Schema.decodeUnknown(TodoCreateParams);
     return pipe(
-      TodoRepository,
-      Effect.flatMap(repo =>
+      TodoService,
+      Effect.flatMap(service =>
         pipe(
           decodeBody(req.body),
           Effect.matchEffect({
@@ -49,7 +49,7 @@ export const TodoRoute = Effect.all([
               Effect.sync(() => res.status(400).json('Invalid Todo')),
             onSuccess: todo =>
               pipe(
-                repo.createTodo(todo),
+                service.createTodo(todo),
                 Effect.flatMap(id => Effect.sync(() => res.json(id)))
               ),
           })
@@ -65,8 +65,8 @@ export const TodoRoute = Effect.all([
     const id: number = req.params.id;
     const decodeBody = Schema.decodeUnknown(TodoUpdateParams);
     return pipe(
-      TodoRepository,
-      Effect.flatMap(repo =>
+      TodoService,
+      Effect.flatMap(service =>
         pipe(
           decodeBody(req.body),
           Effect.matchEffect({
@@ -74,7 +74,7 @@ export const TodoRoute = Effect.all([
               Effect.sync(() => res.status(400).json('Invalid todo')),
             onSuccess: todo =>
               pipe(
-                repo.updateTodo(TodoId(id), todo),
+                service.updateTodo(TodoId(id), todo),
                 Effect.matchEffect({
                   onFailure: () =>
                     Effect.sync(() =>
@@ -93,8 +93,8 @@ export const TodoRoute = Effect.all([
   del('/todo/:id', (req, res) => {
     const id: number = req.params.id;
     return pipe(
-      TodoRepository,
-      Effect.flatMap(repo => repo.deleteTodo(TodoId(id))),
+      TodoService,
+      Effect.flatMap(service => service.deleteTodo(TodoId(id))),
       Effect.flatMap(deleted => Effect.sync(() => res.json({deleted})))
     );
   }),
