@@ -4,6 +4,7 @@
     // "noEmit": true,
     "noErrorTruncation": true,
     "outDir": "./build",
+    "plugins": [{"name": "@effect/language-service"}],
     "rootDir": "./src",
     "skipLibCheck": true
   },
