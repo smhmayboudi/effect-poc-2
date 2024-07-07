@@ -1,11 +1,18 @@
 import {Schema} from '@effect/schema';
-import {pipe} from 'effect';
+import {Brand, pipe} from 'effect';
+import {Int, Positive} from '../lib';
+
+/**
+ * TodoId is a function to generate Todo Id.
+ */
+export const TodoId = Brand.all(Int, Positive);
+export type TodoId = Brand.Brand.FromConstructor<typeof TodoId>;
 
 /**
  * Todo is a Data Access Object - DAO.
  */
-export class Todo extends Schema.Class<Todo>('Todo')({
-  id: Schema.Number,
+export class Todo extends Schema.Class<Todo>('TodoModel')({
+  id: pipe(Schema.Number, Schema.fromBrand(TodoId)),
   title: Schema.String,
   completed: Schema.Boolean,
 }) {}

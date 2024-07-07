@@ -9,11 +9,11 @@ import {
   Ref,
   pipe,
 } from 'effect';
-import {Todo, TodoCreateParams, TodoUpdateParams} from './todo-model';
+import {Todo, TodoId, TodoCreateParams, TodoUpdateParams} from './todo-model';
 
-const makeTodoRepository = Effect.gen(function* ($) {
-  const nextIdRef = yield* $(Ref.make(0));
-  const todosRef = yield* $(Ref.make(HashMap.empty<number, Todo>()));
+const makeTodoRepository = Effect.gen(function* () {
+  const nextIdRef = yield* Ref.make(0);
+  const todosRef = yield* Ref.make(HashMap.empty<number, Todo>());
 
   const createTodo = (
     params: TodoCreateParams
@@ -22,14 +22,14 @@ const makeTodoRepository = Effect.gen(function* ($) {
       Ref.getAndUpdate(nextIdRef, n => n + 1),
       Effect.flatMap(id =>
         Ref.modify(todosRef, map => {
-          const newTodo = new Todo({...params, id});
+          const newTodo = new Todo({...params, id: TodoId(id)});
           const updated = HashMap.set(map, newTodo.id, newTodo);
           return [newTodo.id, updated];
         })
       )
     );
 
-  const deleteTodo = (id: number): Effect.Effect<boolean, never, never> =>
+  const deleteTodo = (id: TodoId): Effect.Effect<boolean, never, never> =>
     pipe(
       Ref.get(todosRef),
       Effect.flatMap(map =>
@@ -40,7 +40,7 @@ const makeTodoRepository = Effect.gen(function* ($) {
     );
 
   const getTodo = (
-    id: number
+    id: TodoId
   ): Effect.Effect<Option.Option<Todo>, never, never> =>
     pipe(Ref.get(todosRef), Effect.map(HashMap.get(id)));
 
@@ -51,7 +51,7 @@ const makeTodoRepository = Effect.gen(function* ($) {
     );
 
   const updateTodo = (
-    id: number,
+    id: TodoId,
     params: TodoUpdateParams
   ): Effect.Effect<Todo, Cause.NoSuchElementException, never> =>
     pipe(
