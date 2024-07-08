@@ -9,6 +9,7 @@ const IP = pipe(
   }),
   Config.withDefault('127.0.0.1')
 );
+
 const PORT = pipe(
   Config.number('PORT'),
   Config.validate({

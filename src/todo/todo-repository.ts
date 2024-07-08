@@ -1,6 +1,5 @@
 import {
   Array,
-  Cause,
   Context,
   Effect,
   HashMap,
@@ -10,6 +9,7 @@ import {
   pipe,
 } from 'effect';
 import {Todo, TodoId, TodoCreateParams, TodoUpdateParams} from './todo-model';
+import {TodoUpdateError} from './todo-error';
 
 const makeTodoRepository = Effect.gen(function* () {
   const nextIdRef = yield* Ref.make(0);
@@ -53,13 +53,15 @@ const makeTodoRepository = Effect.gen(function* () {
   const updateTodo = (
     id: TodoId,
     params: TodoUpdateParams
-  ): Effect.Effect<Todo, Cause.NoSuchElementException, never> =>
+  ): Effect.Effect<Todo, TodoUpdateError, never> =>
     pipe(
       Ref.get(todosRef),
       Effect.flatMap(map => {
         const maybeTodo = HashMap.get(map, id);
         if (Option.isNone(maybeTodo)) {
-          return Effect.fail(new Cause.NoSuchElementException());
+          return new TodoUpdateError({
+            message: `the object with todo id ${id} is not available.`,
+          });
         }
         const newTodo = new Todo({...maybeTodo.value, ...params});
         const updated = HashMap.set(map, id, newTodo);

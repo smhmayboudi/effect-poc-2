@@ -1,6 +1,6 @@
 import {Effect, Layer, pipe} from 'effect';
 import {Express} from './express';
-import {TodoRoute} from './todo/todo-route';
+import {TodoController} from './todo/todo-controller';
 import {TodoRepository} from './todo/todo-repository';
 import {TodoService} from './todo/todo-service';
 import {env} from './env';
@@ -18,7 +18,7 @@ const AppLive = pipe(
 );
 
 pipe(
-  TodoRoute,
+  TodoController,
   Effect.zipRight(Effect.never),
   Effect.provide(AppLive),
   Effect.tapErrorCause(Effect.logError),

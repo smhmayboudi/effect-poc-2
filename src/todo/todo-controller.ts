@@ -5,7 +5,7 @@ import {Schema} from '@effect/schema';
 import {del, get, post, put, use} from '../express';
 import {TodoCreateParams, TodoId, TodoUpdateParams} from './todo-model';
 
-export const TodoRoute = Effect.all([
+export const TodoController = Effect.all([
   // Deserialize the body as a JSON
   use((req, res, next) => Effect.sync(() => bodyParser.json()(req, res, next))),
   // GET `/todo/:id` route
@@ -76,9 +76,11 @@ export const TodoRoute = Effect.all([
               pipe(
                 service.updateTodo(TodoId(id), todo),
                 Effect.matchEffect({
-                  onFailure: () =>
+                  onFailure: err =>
                     Effect.sync(() =>
-                      res.status(404).json(`Todo ${id} not found`)
+                      res
+                        .status(404)
+                        .json(`Todo ${id} not found: ${err.message}`)
                     ),
                   onSuccess: todo => Effect.sync(() => res.json(todo)),
                 })

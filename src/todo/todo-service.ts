@@ -1,6 +1,7 @@
-import {Cause, Context, Effect, Layer, Option} from 'effect';
+import {Context, Effect, Layer, Option} from 'effect';
 import {Todo, TodoId, TodoCreateParams, TodoUpdateParams} from './todo-model';
 import {TodoRepository} from './todo-repository';
+import {TodoUpdateError} from './todo-error';
 
 const makeTodoService = Effect.gen(function* () {
   const repository = yield* TodoRepository;
@@ -22,7 +23,7 @@ const makeTodoService = Effect.gen(function* () {
   const updateTodo = (
     id: TodoId,
     params: TodoUpdateParams
-  ): Effect.Effect<Todo, Cause.NoSuchElementException, never> =>
+  ): Effect.Effect<Todo, TodoUpdateError, never> =>
     repository.updateTodo(id, params);
 
   return {
