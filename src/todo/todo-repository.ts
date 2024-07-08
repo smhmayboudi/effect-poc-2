@@ -80,5 +80,5 @@ export class TodoRepository extends Context.Tag('TodoRepository')<
   TodoRepository,
   Effect.Effect.Success<typeof makeTodoRepository>
 >() {
-  static readonly Live = Layer.effect(TodoRepository, makeTodoRepository);
+  static readonly live = Layer.effect(TodoRepository, makeTodoRepository);
 }

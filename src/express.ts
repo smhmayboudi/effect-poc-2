@@ -21,11 +21,11 @@ export class Express extends Context.Tag('Express')<
   Express,
   Effect.Effect.Success<ReturnType<typeof makeExpress>>
 >() {
-  static Live(
+  static live(
     hostname: string,
     port: number
   ): Layer.Layer<Express, never, never>;
-  static Live<R>(
+  static live<R>(
     hostname: string,
     port: number,
     exitHandler: (
@@ -34,7 +34,7 @@ export class Express extends Context.Tag('Express')<
       next: express.NextFunction
     ) => (cause: Cause.Cause<never>) => Effect.Effect<void, never, R>
   ): Layer.Layer<Express, never, R>;
-  static Live<R>(
+  static live<R>(
     hostname: string,
     port: number,
     exitHandler?: (
@@ -49,8 +49,6 @@ export class Express extends Context.Tag('Express')<
     );
   }
 }
-
-export const Live = Express.Live;
 
 export type ExitHandler<R> = (
   req: express.Request,

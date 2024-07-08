@@ -15,7 +15,7 @@ export class Todo extends Schema.Class<Todo>('TodoModel')({
   id: pipe(Schema.Number, Schema.fromBrand(TodoId)),
   title: pipe(
     Schema.String,
-    Schema.pattern(/^\w+$/gi, {
+    Schema.pattern(/^\w+$/, {
       message: () => 'must be characters.',
     }),
     Schema.minLength(3, {message: () => 'must be 3 or more characters long.'}),
