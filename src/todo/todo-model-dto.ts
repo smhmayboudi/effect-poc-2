@@ -2,19 +2,58 @@
 
 import {Schema} from '@effect/schema';
 import {pipe} from 'effect';
+import {TodoModelBO} from './todo-model-bo';
+import {TodoId} from './todo-model-index';
 
 /**
- * TodoCreateParamsDTO is a Data Transmit Object - DTO.
+ * TodoModelDTO is a Data Transmit Object - DTO.
  */
-export class TodoCreateParamsDTO extends Schema.Struct({
-  completed: Schema.Number,
+
+export class TodoModelDTO extends Schema.Class<TodoModelDTO>('TodoModelDTO')({
+  id: Schema.Number,
   title: Schema.String,
+  completed: Schema.Number,
+}) {
+  static FromEncoded = Schema.transform(TodoModelBO, TodoModelDTO, {
+    decode: (
+      fromA: Schema.Schema.Encoded<typeof TodoModelBO>
+    ): Schema.Schema.Encoded<typeof TodoModelDTO> =>
+      new TodoModelDTO({
+        id: fromA.id,
+        title: fromA.title,
+        completed: fromA.completed ? 1 : 0,
+      }),
+    encode: (
+      toI: Schema.Schema.Encoded<typeof TodoModelDTO>
+    ): Schema.Schema.Type<typeof TodoModelBO> =>
+      new TodoModelBO({
+        id: TodoId(toI.id),
+        title: toI.title,
+        completed: toI.completed === 1,
+      }),
+  });
+
+  // get [Serializable.symbol]() {
+  //   return TodoModelDTO.FromEncoded;
+  // }
+}
+
+/**
+ * TodoModelCreateParamsDTO is a Data Transmit Object - DTO.
+ */
+export class TodoModelCreateParamsDTO extends Schema.Class<TodoModelCreateParamsDTO>(
+  'TodoModelCreateParamsDTO'
+)({
+  title: Schema.String,
+  completed: Schema.Number,
 }) {}
 
 /**
- * TodoUpdateParamsDTO is a Data Transmit Object - DTO.
+ * TodoModelUpdateParamsDTO is a Data Transmit Object - DTO.
  */
-export class TodoUpdateParamsDTO extends Schema.Struct({
-  completed: pipe(Schema.Number, Schema.partial()),
+export class TodoModelUpdateParamsDTO extends Schema.Class<TodoModelUpdateParamsDTO>(
+  'TodoModelUpdateParamsDTO'
+)({
   title: pipe(Schema.String, Schema.partial()),
+  completed: pipe(Schema.Number, Schema.partial()),
 }) {}

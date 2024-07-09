@@ -9,22 +9,29 @@ import {
   pipe,
 } from 'effect';
 import {TodoUpdateError} from './todo-error';
-import {TodoCreateParamsBO, TodoUpdateParamsBO} from './todo-model-bo';
-import {Todo} from './todo-model-dao';
+import {
+  TodoModelBO,
+  TodoModelCreateParamsBO,
+  TodoModelUpdateParamsBO,
+} from './todo-model-bo';
+import {TodoModelDAO} from './todo-model-dao';
 import {TodoId} from './todo-model-index';
+import {Schema} from '@effect/schema';
+import {NoSuchElementException} from 'effect/Cause';
+import {ParseError} from '@effect/schema/ParseResult';
 
 const makeTodoRepository = Effect.gen(function* () {
-  const nextIdRef = yield* Ref.make(1);
-  const todosRef = yield* Ref.make(HashMap.empty<number, Todo>());
+  const nextIdRef = yield* Ref.make(TodoId(1));
+  const todosRef = yield* Ref.make(HashMap.empty<TodoId, TodoModelDAO>());
 
   const createTodo = (
-    params: TodoCreateParamsBO
-  ): Effect.Effect<number, never, never> =>
+    params: TodoModelCreateParamsBO
+  ): Effect.Effect<TodoId, never, never> =>
     pipe(
-      Ref.getAndUpdate(nextIdRef, n => n + 1),
+      Ref.getAndUpdate(nextIdRef, n => TodoId(n + 1)),
       Effect.flatMap(id =>
         Ref.modify(todosRef, map => {
-          const newTodo = new Todo({...params, id: TodoId(id)});
+          const newTodo = new TodoModelDAO({...params, id: TodoId(id)});
           const updated = HashMap.set(map, newTodo.id, newTodo);
           return [newTodo.id, updated];
         })
@@ -43,19 +50,39 @@ const makeTodoRepository = Effect.gen(function* () {
 
   const getTodo = (
     id: TodoId
-  ): Effect.Effect<Option.Option<Todo>, never, never> =>
-    pipe(Ref.get(todosRef), Effect.map(HashMap.get(id)));
-
-  const getTodos = (): Effect.Effect<ReadonlyArray<Todo>, never, never> =>
+  ): Effect.Effect<TodoModelBO, NoSuchElementException | ParseError, never> =>
     pipe(
       Ref.get(todosRef),
-      Effect.map(map => Array.fromIterable(HashMap.values(map)))
+      Effect.flatMap(HashMap.get(id)),
+      Effect.flatMap(
+        Schema.decode(TodoModelBO.FromEncoded, {
+          errors: 'all',
+          propertyOrder: 'original',
+          onExcessProperty: 'error',
+          exact: false,
+        })
+      )
+    );
+
+  const getTodos = (): Effect.Effect<TodoModelBO[], never, never> =>
+    pipe(
+      Ref.get(todosRef),
+      Effect.map(map =>
+        Array.fromIterable(HashMap.values(map)).map(dao =>
+          Schema.decodeSync(TodoModelBO.FromEncoded, {
+            errors: 'all',
+            propertyOrder: 'original',
+            onExcessProperty: 'error',
+            exact: true,
+          })(dao)
+        )
+      )
     );
 
   const updateTodo = (
     id: TodoId,
-    params: TodoUpdateParamsBO
-  ): Effect.Effect<Todo, TodoUpdateError, never> =>
+    params: TodoModelUpdateParamsBO
+  ): Effect.Effect<TodoModelBO, TodoUpdateError, never> =>
     pipe(
       Ref.get(todosRef),
       Effect.flatMap(map => {
@@ -65,9 +92,16 @@ const makeTodoRepository = Effect.gen(function* () {
             message: `the object with todo id ${id} is not available.`,
           });
         }
-        const newTodo = new Todo({...maybeTodo.value, ...params});
+        const newTodo = new TodoModelDAO({...maybeTodo.value, ...params});
         const updated = HashMap.set(map, id, newTodo);
-        return pipe(Ref.set(todosRef, updated), Effect.as(newTodo));
+        const newTodo2 = Schema.decodeSync(TodoModelBO.FromEncoded, {
+          errors: 'all',
+          propertyOrder: 'original',
+          onExcessProperty: 'error',
+          exact: true,
+        })(newTodo);
+
+        return pipe(Ref.set(todosRef, updated), Effect.as(newTodo2));
       })
     );
 

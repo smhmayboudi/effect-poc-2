@@ -1,31 +1,37 @@
-import {Context, Effect, Layer, Option} from 'effect';
+import {Context, Effect, Layer} from 'effect';
 import {TodoRepository} from './todo-repository';
 import {TodoUpdateError} from './todo-error';
-import {TodoCreateParamsBO, TodoUpdateParamsBO} from './todo-model-bo';
-import {Todo} from './todo-model-dao';
+import {
+  TodoModelBO,
+  TodoModelCreateParamsBO,
+  TodoModelUpdateParamsBO,
+} from './todo-model-bo';
 import {TodoId} from './todo-model-index';
+import {ParseError} from '@effect/schema/ParseResult';
+import {NoSuchElementException} from 'effect/Cause';
 
 const makeTodoService = Effect.gen(function* () {
   const repository = yield* TodoRepository;
 
   const createTodo = (
-    params: TodoCreateParamsBO
-  ): Effect.Effect<number, never, never> => repository.createTodo(params);
+    params: TodoModelCreateParamsBO
+  ): Effect.Effect<TodoId, never, never> => repository.createTodo(params);
 
   const deleteTodo = (id: TodoId): Effect.Effect<boolean, never, never> =>
     repository.deleteTodo(id);
 
   const getTodo = (
     id: TodoId
-  ): Effect.Effect<Option.Option<Todo>, never, never> => repository.getTodo(id);
+  ): Effect.Effect<TodoModelBO, NoSuchElementException | ParseError, never> =>
+    repository.getTodo(id);
 
-  const getTodos = (): Effect.Effect<ReadonlyArray<Todo>, never, never> =>
+  const getTodos = (): Effect.Effect<TodoModelBO[], never, never> =>
     repository.getTodos();
 
   const updateTodo = (
     id: TodoId,
-    params: TodoUpdateParamsBO
-  ): Effect.Effect<Todo, TodoUpdateError, never> =>
+    params: TodoModelUpdateParamsBO
+  ): Effect.Effect<TodoModelBO, TodoUpdateError, never> =>
     repository.updateTodo(id, params);
 
   return {
