@@ -8,6 +8,6 @@ export const Int = Brand.refined<Int>(
 
 export type Positive = number & Brand.Brand<'Positive'>;
 export const Positive = Brand.refined<Positive>(
-  n => n > 0,
+  n => n >= 0,
   n => Brand.error(`expected ${n} to be positive.`)
 );

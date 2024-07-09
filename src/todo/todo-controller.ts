@@ -3,7 +3,8 @@ import {TodoService} from './todo-service';
 import * as bodyParser from 'body-parser';
 import {Schema} from '@effect/schema';
 import {del, get, post, put, use} from '../express';
-import {TodoCreateParams, TodoId, TodoUpdateParams} from './todo-model';
+import {TodoCreateParamsBO, TodoUpdateParamsBO} from './todo-model-bo';
+import {TodoId} from './todo-model-index';
 
 export const TodoController = Effect.all([
   // Deserialize the body as a JSON
@@ -12,7 +13,7 @@ export const TodoController = Effect.all([
   // - If the todo exists, return the todo as JSON
   // - If the todo does not exist return a 404 status code with the message `"Todo ${id} not found"`
   get('/todo/:id', (req, res) => {
-    const id: number = req.params.id;
+    const id = Number(req.params.id);
     return pipe(
       TodoService,
       Effect.flatMap(service => service.getTodo(TodoId(id))),
@@ -38,12 +39,13 @@ export const TodoController = Effect.all([
   // - Should create a new todo and return the todo ID in the response
   // - If the request JSON body is not valid return a 400 status code with the message `"Invalid todo"`
   post('/todo', (req, res) => {
-    const decodeBody = Schema.decodeUnknown(TodoCreateParams);
+    const decodeBody = Schema.decodeUnknown(TodoCreateParamsBO.FromEncoded);
     return pipe(
       TodoService,
       Effect.flatMap(service =>
         pipe(
           decodeBody(req.body),
+          Effect.tap(console.log),
           Effect.matchEffect({
             onFailure: () =>
               Effect.sync(() => res.status(400).json('Invalid Todo')),
@@ -62,8 +64,8 @@ export const TodoController = Effect.all([
   // - If the request JSON body is not valid return a 400 status code with the message `"Invalid todo"`
   // - If the todo does not exist return a 404 with the message `"Todo ${id} not found"`
   put('/todo/:id', (req, res) => {
-    const id: number = req.params.id;
-    const decodeBody = Schema.decodeUnknown(TodoUpdateParams);
+    const id = Number(req.params.id);
+    const decodeBody = Schema.decodeUnknown(TodoUpdateParamsBO.FromEncoded);
     return pipe(
       TodoService,
       Effect.flatMap(service =>
@@ -93,7 +95,7 @@ export const TodoController = Effect.all([
   // DELETE `/todo/:id` route
   // - Should delete the todo by id and return a boolean indicating if a todo was deleted
   del('/todo/:id', (req, res) => {
-    const id: number = req.params.id;
+    const id = Number(req.params.id);
     return pipe(
       TodoService,
       Effect.flatMap(service => service.deleteTodo(TodoId(id))),

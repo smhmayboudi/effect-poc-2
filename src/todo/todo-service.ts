@@ -1,13 +1,15 @@
 import {Context, Effect, Layer, Option} from 'effect';
-import {Todo, TodoId, TodoCreateParams, TodoUpdateParams} from './todo-model';
 import {TodoRepository} from './todo-repository';
 import {TodoUpdateError} from './todo-error';
+import {TodoCreateParamsBO, TodoUpdateParamsBO} from './todo-model-bo';
+import {Todo} from './todo-model-dao';
+import {TodoId} from './todo-model-index';
 
 const makeTodoService = Effect.gen(function* () {
   const repository = yield* TodoRepository;
 
   const createTodo = (
-    params: TodoCreateParams
+    params: TodoCreateParamsBO
   ): Effect.Effect<number, never, never> => repository.createTodo(params);
 
   const deleteTodo = (id: TodoId): Effect.Effect<boolean, never, never> =>
@@ -22,7 +24,7 @@ const makeTodoService = Effect.gen(function* () {
 
   const updateTodo = (
     id: TodoId,
-    params: TodoUpdateParams
+    params: TodoUpdateParamsBO
   ): Effect.Effect<Todo, TodoUpdateError, never> =>
     repository.updateTodo(id, params);
 

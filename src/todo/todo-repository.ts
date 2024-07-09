@@ -8,15 +8,17 @@ import {
   Ref,
   pipe,
 } from 'effect';
-import {Todo, TodoId, TodoCreateParams, TodoUpdateParams} from './todo-model';
 import {TodoUpdateError} from './todo-error';
+import {TodoCreateParamsBO, TodoUpdateParamsBO} from './todo-model-bo';
+import {Todo} from './todo-model-dao';
+import {TodoId} from './todo-model-index';
 
 const makeTodoRepository = Effect.gen(function* () {
-  const nextIdRef = yield* Ref.make(0);
+  const nextIdRef = yield* Ref.make(1);
   const todosRef = yield* Ref.make(HashMap.empty<number, Todo>());
 
   const createTodo = (
-    params: TodoCreateParams
+    params: TodoCreateParamsBO
   ): Effect.Effect<number, never, never> =>
     pipe(
       Ref.getAndUpdate(nextIdRef, n => n + 1),
@@ -52,7 +54,7 @@ const makeTodoRepository = Effect.gen(function* () {
 
   const updateTodo = (
     id: TodoId,
-    params: TodoUpdateParams
+    params: TodoUpdateParamsBO
   ): Effect.Effect<Todo, TodoUpdateError, never> =>
     pipe(
       Ref.get(todosRef),
