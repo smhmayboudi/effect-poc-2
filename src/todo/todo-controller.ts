@@ -6,8 +6,8 @@ import {del, get, post, put, use} from '../express';
 import {
   TodoModelCreateParamsBO,
   TodoModelUpdateParamsBO,
-} from './todo-model-bo';
-import {TodoId} from './todo-model-index';
+} from './todo-model-index';
+import {TodoId} from '../lib';
 
 export const TodoController = Effect.all([
   // Deserialize the body as a JSON
@@ -28,19 +28,19 @@ export const TodoController = Effect.all([
         onSuccess: todo => Effect.sync(() => res.json(todo)),
         // onSuccess: todo =>
         //   Effect.sync(() => {
-        //     const x = Schema.decodeSync(TodoModelDTO.FromEncoded, {
+        //     const dto = Schema.decodeSync(TodoModelDTO.TransformFrom, {
         //       errors: 'all',
         //       propertyOrder: 'original',
         //       onExcessProperty: 'error',
         //       exact: true,
         //     })(todo);
-        //     return res.json(x);
+        //     return res.json(dto);
         //   }),
         // onSuccess: todo =>
         //   pipe(
         //     Effect.succeed(todo),
         //     Effect.flatMap(
-        //       Schema.decode(TodoModelDTO.FromEncoded, {
+        //       Schema.decode(TodoModelDTO.TransformFrom, {
         //         errors: 'all',
         //         propertyOrder: 'original',
         //         onExcessProperty: 'error',
@@ -64,7 +64,7 @@ export const TodoController = Effect.all([
       Effect.flatMap(service => service.getTodos()),
       // Effect.map(map =>
       //   Array.fromIterable(map).map(dao =>
-      //     Schema.decodeSync(TodoModelDTO.FromEncoded, {
+      //     Schema.decodeSync(TodoModelDTO.TransformFrom, {
       //       errors: 'all',
       //       propertyOrder: 'original',
       //       onExcessProperty: 'error',
@@ -80,7 +80,7 @@ export const TodoController = Effect.all([
   // - If the request JSON body is not valid return a 400 status code with the message `"Invalid todo"`
   post('/todo', (req, res) =>
     pipe(
-      Schema.decodeUnknown(TodoModelCreateParamsBO.FromEncoded, {
+      Schema.decodeUnknown(TodoModelCreateParamsBO.TransformFrom, {
         errors: 'all',
         propertyOrder: 'original',
         onExcessProperty: 'error',
@@ -105,7 +105,7 @@ export const TodoController = Effect.all([
   put('/todo/:id', (req, res) => {
     const id = Number(req.params.id);
     return pipe(
-      Schema.decodeUnknown(TodoModelUpdateParamsBO.FromEncoded)(req.body, {
+      Schema.decodeUnknown(TodoModelUpdateParamsBO.TransformFrom)(req.body, {
         errors: 'all',
         propertyOrder: 'original',
         onExcessProperty: 'error',
@@ -119,7 +119,7 @@ export const TodoController = Effect.all([
             TodoService,
             Effect.flatMap(service => service.updateTodo(TodoId(id), todo)),
             // Effect.flatMap(
-            //   Schema.decode(TodoModelDTO.FromEncoded, {
+            //   Schema.decode(TodoModelDTO.TransformFrom, {
             //     errors: 'all',
             //     propertyOrder: 'original',
             //     onExcessProperty: 'error',

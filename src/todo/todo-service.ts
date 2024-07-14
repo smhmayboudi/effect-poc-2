@@ -5,8 +5,8 @@ import {
   TodoModelBO,
   TodoModelCreateParamsBO,
   TodoModelUpdateParamsBO,
-} from './todo-model-bo';
-import {TodoId} from './todo-model-index';
+} from './todo-model-index';
+import {TodoId} from '../lib';
 import {ParseError} from '@effect/schema/ParseResult';
 import {NoSuchElementException} from 'effect/Cause';
 

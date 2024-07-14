@@ -1,9 +1,9 @@
 // read more: https://github.com/Effect-TS/effect/blob/main/packages/schema/README.md
 
-import {Schema} from '@effect/schema';
+import {Schema, Serializable} from '@effect/schema';
 import {pipe} from 'effect';
 import {TodoModelBO} from './todo-model-bo';
-import {TodoId} from './todo-model-index';
+import {TodoId} from '../lib';
 
 /**
  * TodoModelDTO is a Data Transmit Object - DTO.
@@ -14,28 +14,23 @@ export class TodoModelDTO extends Schema.Class<TodoModelDTO>('TodoModelDTO')({
   title: Schema.String,
   completed: Schema.Number,
 }) {
-  static FromEncoded = Schema.transform(TodoModelBO, TodoModelDTO, {
-    decode: (
-      fromA: Schema.Schema.Encoded<typeof TodoModelBO>
-    ): Schema.Schema.Encoded<typeof TodoModelDTO> =>
+  static TransformFrom = Schema.transform(TodoModelBO, TodoModelDTO, {
+    decode: fromA =>
       new TodoModelDTO({
-        id: fromA.id,
-        title: fromA.title,
+        ...fromA,
         completed: fromA.completed ? 1 : 0,
       }),
-    encode: (
-      toI: Schema.Schema.Encoded<typeof TodoModelDTO>
-    ): Schema.Schema.Type<typeof TodoModelBO> =>
+    encode: toI =>
       new TodoModelBO({
+        ...toI,
         id: TodoId(toI.id),
-        title: toI.title,
         completed: toI.completed === 1,
       }),
   });
 
-  // get [Serializable.symbol]() {
-  //   return TodoModelDTO.FromEncoded;
-  // }
+  get [Serializable.symbol]() {
+    return TodoModelDTO.TransformFrom;
+  }
 }
 
 /**

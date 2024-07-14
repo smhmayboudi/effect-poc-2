@@ -12,10 +12,10 @@ import {TodoUpdateError} from './todo-error';
 import {
   TodoModelBO,
   TodoModelCreateParamsBO,
+  TodoModelDAO,
   TodoModelUpdateParamsBO,
-} from './todo-model-bo';
-import {TodoModelDAO} from './todo-model-dao';
-import {TodoId} from './todo-model-index';
+} from './todo-model-index';
+import {TodoId} from '../lib';
 import {Schema} from '@effect/schema';
 import {NoSuchElementException} from 'effect/Cause';
 import {ParseError} from '@effect/schema/ParseResult';
@@ -31,9 +31,9 @@ const makeTodoRepository = Effect.gen(function* () {
       Ref.getAndUpdate(nextIdRef, n => TodoId(n + 1)),
       Effect.flatMap(id =>
         Ref.modify(todosRef, map => {
-          const newTodo = new TodoModelDAO({...params, id: TodoId(id)});
-          const updated = HashMap.set(map, newTodo.id, newTodo);
-          return [newTodo.id, updated];
+          const newTodoDAO = new TodoModelDAO({...params, id: TodoId(id)});
+          const updated = HashMap.set(map, newTodoDAO.id, newTodoDAO);
+          return [newTodoDAO.id, updated];
         })
       )
     );
@@ -55,7 +55,7 @@ const makeTodoRepository = Effect.gen(function* () {
       Ref.get(todosRef),
       Effect.flatMap(HashMap.get(id)),
       Effect.flatMap(
-        Schema.decode(TodoModelBO.FromEncoded, {
+        Schema.decode(TodoModelBO.TransformFrom, {
           errors: 'all',
           propertyOrder: 'original',
           onExcessProperty: 'error',
@@ -69,7 +69,7 @@ const makeTodoRepository = Effect.gen(function* () {
       Ref.get(todosRef),
       Effect.map(map =>
         Array.fromIterable(HashMap.values(map)).map(dao =>
-          Schema.decodeSync(TodoModelBO.FromEncoded, {
+          Schema.decodeSync(TodoModelBO.TransformFrom, {
             errors: 'all',
             propertyOrder: 'original',
             onExcessProperty: 'error',
@@ -92,16 +92,16 @@ const makeTodoRepository = Effect.gen(function* () {
             message: `the object with todo id ${id} is not available.`,
           });
         }
-        const newTodo = new TodoModelDAO({...maybeTodo.value, ...params});
-        const updated = HashMap.set(map, id, newTodo);
-        const newTodo2 = Schema.decodeSync(TodoModelBO.FromEncoded, {
+        const newTodoDAO = new TodoModelDAO({...maybeTodo.value, ...params});
+        const updated = HashMap.set(map, id, newTodoDAO);
+        const newTodoBO = Schema.decodeSync(TodoModelBO.TransformFrom, {
           errors: 'all',
           propertyOrder: 'original',
           onExcessProperty: 'error',
           exact: true,
-        })(newTodo);
+        })(newTodoDAO);
 
-        return pipe(Ref.set(todosRef, updated), Effect.as(newTodo2));
+        return pipe(Ref.set(todosRef, updated), Effect.as(newTodoBO));
       })
     );
 

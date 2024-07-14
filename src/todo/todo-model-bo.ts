@@ -1,12 +1,12 @@
 // read more: https://github.com/Effect-TS/effect/blob/main/packages/schema/README.md
 
-import {Schema} from '@effect/schema';
+import {Schema, Serializable} from '@effect/schema';
 import {
   TodoModelCreateParamsDTO,
   TodoModelUpdateParamsDTO,
 } from './todo-model-dto';
 import {pipe} from 'effect';
-import {TodoId} from './todo-model-index';
+import {TodoId} from '../lib';
 import {TodoModelDAO} from './todo-model-dao';
 
 /**
@@ -17,28 +17,18 @@ export class TodoModelBO extends Schema.Class<TodoModelBO>('TodoModelBO')({
   title: Schema.String,
   completed: Schema.Boolean,
 }) {
-  static FromEncoded = Schema.transform(TodoModelDAO, TodoModelBO, {
-    decode: (
-      fromA: Schema.Schema.Encoded<typeof TodoModelDAO>
-    ): Schema.Schema.Encoded<typeof TodoModelBO> =>
-      new TodoModelBO({
-        id: TodoId(fromA.id),
-        title: fromA.title,
-        completed: fromA.completed,
-      }),
-    encode: (
-      toI: Schema.Schema.Encoded<typeof TodoModelBO>
-    ): Schema.Schema.Type<typeof TodoModelDAO> =>
+  static TransformFrom = Schema.transform(TodoModelDAO, TodoModelBO, {
+    decode: fromA => new TodoModelBO({...fromA}),
+    encode: toI =>
       new TodoModelDAO({
+        ...toI,
         id: TodoId(toI.id),
-        title: toI.title,
-        completed: toI.completed,
       }),
   });
 
-  // get [Serializable.symbol]() {
-  //   return TodoModelBO.FromEncoded;
-  // }
+  get [Serializable.symbol]() {
+    return TodoModelBO.TransformFrom;
+  }
 }
 
 /**
@@ -55,30 +45,26 @@ export class TodoModelCreateParamsBO extends Schema.Class<TodoModelCreateParamsB
   title: Schema.String,
   completed: Schema.Boolean,
 }) {
-  static FromEncoded = Schema.transform(
+  static TransformFrom = Schema.transform(
     TodoModelCreateParamsDTO,
     TodoModelCreateParamsBO,
     {
-      decode: (
-        fromA: Schema.Schema.Encoded<typeof TodoModelCreateParamsDTO>
-      ): Schema.Schema.Encoded<typeof TodoModelCreateParamsBO> =>
+      decode: fromA =>
         new TodoModelCreateParamsBO({
-          title: fromA.title,
+          ...fromA,
           completed: fromA.completed === 1,
         }),
-      encode: (
-        toI: Schema.Schema.Encoded<typeof TodoModelCreateParamsBO>
-      ): Schema.Schema.Type<typeof TodoModelCreateParamsDTO> =>
+      encode: toI =>
         new TodoModelCreateParamsDTO({
-          title: toI.title,
+          ...toI,
           completed: toI.completed ? 1 : 0,
         }),
     }
   );
 
-  // get [Serializable.symbol]() {
-  //   return TodoModelCreateParamsBO.FromEncoded;
-  // }
+  get [Serializable.symbol]() {
+    return TodoModelCreateParamsBO.TransformFrom;
+  }
 }
 
 /**
@@ -95,28 +81,24 @@ export class TodoModelUpdateParamsBO extends Schema.Class<TodoModelUpdateParamsB
   title: pipe(Schema.String, Schema.partial()),
   completed: pipe(Schema.Boolean, Schema.partial()),
 }) {
-  static FromEncoded = Schema.transform(
+  static TransformFrom = Schema.transform(
     TodoModelUpdateParamsDTO,
     TodoModelUpdateParamsBO,
     {
-      decode: (
-        fromA: Schema.Schema.Encoded<typeof TodoModelUpdateParamsDTO>
-      ): Schema.Schema.Encoded<typeof TodoModelUpdateParamsBO> =>
+      decode: fromA =>
         new TodoModelUpdateParamsBO({
-          title: fromA.title,
+          ...fromA,
           completed: fromA.completed === 1,
         }),
-      encode: (
-        toI: Schema.Schema.Encoded<typeof TodoModelUpdateParamsBO>
-      ): Schema.Schema.Type<typeof TodoModelUpdateParamsDTO> =>
+      encode: toI =>
         new TodoModelUpdateParamsDTO({
-          title: toI.title,
+          ...toI,
           completed: toI.completed ? 1 : 0,
         }),
     }
   );
 
-  // get [Serializable.symbol]() {
-  //   return TodoModelUpdateParamsBO.FromEncoded;
-  // }
+  get [Serializable.symbol]() {
+    return TodoModelUpdateParamsBO.TransformFrom;
+  }
 }

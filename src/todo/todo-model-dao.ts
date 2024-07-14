@@ -2,7 +2,7 @@
 
 import {Schema} from '@effect/schema';
 import {pipe} from 'effect';
-import {TodoId} from './todo-model-index';
+import {TodoId} from '../lib';
 
 /**
  * TodoModelDAO is a Data Access Object - DAO class.
