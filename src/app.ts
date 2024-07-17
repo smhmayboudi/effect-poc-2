@@ -1,9 +1,15 @@
-import {Effect, Layer, pipe} from 'effect';
+import {Effect, Layer, Logger, pipe} from 'effect';
 import {Express} from './express';
 import {TodoController} from './todo/todo-controller';
 import {TodoRepository} from './todo/todo-repository';
 import {TodoService} from './todo/todo-service';
-import {env} from './env';
+import env from './env-index';
+
+const LogLevelLive = pipe(
+  env.log,
+  Effect.andThen(({level}) => Logger.minimumLogLevel(level)),
+  Layer.unwrapEffect
+);
 
 const ExpressLive = pipe(
   env.server,
@@ -12,7 +18,8 @@ const ExpressLive = pipe(
 );
 
 const AppLive = pipe(
-  ExpressLive,
+  LogLevelLive,
+  Layer.merge(ExpressLive),
   Layer.merge(TodoService.live),
   Layer.provideMerge(TodoRepository.live)
 );
@@ -22,5 +29,6 @@ pipe(
   Effect.zipRight(Effect.never),
   Effect.provide(AppLive),
   Effect.tapErrorCause(Effect.logError),
+  Effect.provide(Logger.json),
   Effect.runFork
 );

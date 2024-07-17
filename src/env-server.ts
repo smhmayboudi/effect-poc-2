@@ -1,6 +1,6 @@
 import {Config, pipe} from 'effect';
 
-const IP = pipe(
+const ip = pipe(
   Config.string('IP'),
   Config.validate({
     message: 'must be a string with IPv4 format.',
@@ -10,7 +10,7 @@ const IP = pipe(
   Config.withDefault('127.0.0.1')
 );
 
-const PORT = pipe(
+const port = pipe(
   Config.number('PORT'),
   Config.validate({
     message: 'must be a number between 1024 to 65536.',
@@ -19,19 +19,7 @@ const PORT = pipe(
   Config.withDefault(8888)
 );
 
-const server = Config.nested(
-  Config.all({
-    ip: IP,
-    port: PORT,
-  }).pipe(
-    Config.map(({ip, port}) => ({
-      ip,
-      port,
-    }))
-  ),
+export const server = Config.nested(
+  Config.all({ip, port}).pipe(Config.map(({ip, port}) => ({ip, port}))),
   'SERVER'
 );
-
-export const env = {
-  server: server,
-};

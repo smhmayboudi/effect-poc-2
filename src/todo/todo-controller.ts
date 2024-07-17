@@ -11,7 +11,12 @@ import {TodoId} from '../lib';
 
 export const TodoController = Effect.all([
   // Deserialize the body as a JSON
-  use((req, res, next) => Effect.sync(() => bodyParser.json()(req, res, next))),
+  use((req, res, next) =>
+    Effect.logInfo('start').pipe(
+      Effect.annotateLogs({id: 'req.body.id'}),
+      Effect.andThen(Effect.sync(() => bodyParser.json()(req, res, next)))
+    )
+  ),
   // GET `/todo/:id` route
   // - If the todo exists, return the todo as JSON
   // - If the todo does not exist return a 404 status code with the message `"Todo ${id} not found"`
